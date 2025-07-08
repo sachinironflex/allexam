@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Exam Cracker</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f4f8;
+      padding: 20px;
+      color: #333;
+    }
+    .container { max-width: 800px; margin: auto; }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      background: #007bff;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .btn:hover { background: #0056b3; }
+    .hidden { display: none; }
+    .question-box {
+      background: #fff;
+      padding: 15px;
+      border-radius: 6px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-top: 15px;
+    }
+    .option {
+      background: #f1f1f1;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .option:hover { background: #c8e6c9; }
+    .selected { background: #90caf9 !important; }
+    .solution { color: #d32f2f; margin-top: 10px; }
+    .summary-box {
+      background: #fff;
+      padding: 20px;
+      margin-top: 20px;
+      border-radius: 6px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .question-review {
+      background: #f9fbe7;
+      border: 1px solid #cddc39;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+    .filter-btns {
+      display: flex;
+      gap: 10px;
+      margin: 15px 0;
+    }
+    #timer {
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 10px;
+      color: #d32f2f;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="nameSection">
+      <h2>👤 कृपया अपना नाम दर्ज करें</h2>
+      <input type="text" id="username" placeholder="आपका नाम" style="padding:10px;width:100%;margin:10px 0;" />
+      <button class="btn" onclick="saveName()">Enter</button>
+    </div>
+
+    <div id="homeSection" class="hidden">
+      <h2>नमस्ते, <span id="userNameDisplay"></span> 👋</h2>
+      <button class="btn" onclick="startTest('math')">🧮 Maths Test</button>
+      <button class="btn" onclick="startTest('hindi')">📝 Hindi Test</button>
+      <button class="btn" onclick="startTest('science')">🔬 Science Test</button>
+      <button class="btn" onclick="startTest('gk')">🌍 GK/GS</button>
+      <button class="btn" onclick="startTest('computer')">💻 Computer</button>
+      <button class="btn" onclick="startTest('reasoning')">🧠 Reasoning</button>
+      <button class="btn" onclick="startTest('bihar')">📘 Bihar GK</button>
+      <div id="timer" class="hidden"></div>
+      <div id="testSection" class="hidden"></div>
+      <div id="resultSection" class="hidden"></div>
+    </div>
+  </div>
+
+  <script>
+    const questionData = {
+      math: Array.from({ length: 100 }, (_, i) => {
+        let a = i + 2, b = i + 3;
+        return {
+          q: `Q${i+1}: What is ${a} × ${b}?`,
+          options: [a * b, a + b, a - b, a * b + 1],
+          answer: 0,
+          solution: `${a} × ${b} = ${a * b}`
+        };
+      }),
+      hindi: Array.from({ length: 100 }, (_, i) => ({
+        q: `Q${i+1}: ‘पुस्तक’ का पर्यायवाची क्या है?`,
+        options: ['ग्रंथ', 'खिड़की', 'घोड़ा', 'कपड़ा'],
+        answer: 0,
+        solution: '‘पुस्तक’ का पर्यायवाची शब्द है - ग्रंथ।'
+      })),
+      science: Array.from({ length: 100 }, (_, i) => ({
+        q: `Q${i+1}: पानी का रासायनिक सूत्र क्या है?`,
+        options: ['H2O', 'CO2', 'O2', 'HCl'],
+        answer: 0,
+        solution: 'पानी का रासायनिक सूत्र H₂O होता है।'
+      })),
+      gk: Array.from({ length: 100 }, (_, i) => ({
+        q: `Q${i+1}: भारत की राजधानी क्या है?`,
+        options: ['नई दिल्ली', 'मुंबई', 'कोलकाता', 'चेन्नई'],
+        answer: 0,
+        solution: 'भारत की राजधानी नई दिल्ली है।'
+      })),
+      computer: Array.from({ length: 100 }, (_, i) => ({
+        q: `Q${i+1}: CPU का पूरा नाम क्या है?`,
+        options: ['Central Processing Unit', 'Computer Power Unit', 'Control Panel Unit', 'Central Program Utility'],
+        answer: 0,
+        solution: 'CPU का मतलब है Central Processing Unit।'
+      })),
+      reasoning: Array.from({ length: 100 }, (_, i) => ({
+        q: `Q${i+1}: 2, 4, 6, ?, 10 — ? में क्या आएगा?`,
+        options: ['8', '7', '9', '6'],
+        answer: 0,
+        solution: 'यह एक +2 की series है: अगला नंबर 8 होगा।'
+      })),
+      bihar: Array.from({ length: 100 }, (_, i) => ({
+        q: `Q${i+1}: बिहार के पहले मुख्यमंत्री कौन थे?`,
+        options: ['श्रीकृष्ण सिंह', 'नीतीश कुमार', 'लालू यादव', 'रामविलास पासवान'],
+        answer: 0,
+        solution: 'बिहार के पहले मुख्यमंत्री श्रीकृष्ण सिंह थे।'
+      })),
+    };
+
+    let currentTest = null, currentIndex = 0, selectedOption = null;
+    let correctAnswers = [], wrongAnswers = [], timeLeft = 120 * 60;
+    let timerInterval = null;
+
+    function saveName() {
+      const name = document.getElementById('username').value.trim();
+      if (name) {
+        localStorage.setItem('examUserName', name);
+        document.getElementById('userNameDisplay').innerText = name;
+        document.getElementById('nameSection').classList.add('hidden');
+        document.getElementById('homeSection').classList.remove('hidden');
+      }
+    }
+
+    window.onload = () => {
+      const name = localStorage.getItem('examUserName');
+      if (name) {
+        document.getElementById('username').value = name;
+        document.getElementById('userNameDisplay').innerText = name;
+        document.getElementById('nameSection').classList.add('hidden');
+        document.getElementById('homeSection').classList.remove('hidden');
+      }
+    };
+
+    function startTest(type) {
+      if (!questionData[type]) return;
+      currentTest = type;
+      currentIndex = 0;
+      selectedOption = null;
+      correctAnswers = [];
+      wrongAnswers = [];
+      timeLeft = 120 * 60;
+      clearInterval(timerInterval);
+      document.getElementById('timer').classList.remove('hidden');
+      timerInterval = setInterval(updateTimer, 1000);
+      document.getElementById('testSection').classList.remove('hidden');
+      document.getElementById('resultSection').classList.add('hidden');
+      showQuestion();
+    }
+
+    function updateTimer() {
+      const min = Math.floor(timeLeft / 60);
+      const sec = timeLeft % 60;
+      document.getElementById('timer').innerText = `⏰ समय बचा है: ${min} मिनट ${sec} सेकंड`;
+      timeLeft--;
+      if (timeLeft < 0) {
+        clearInterval(timerInterval);
+        showResult();
+      }
+    }
+
+    function showQuestion() {
+      const questions = questionData[currentTest];
+      const q = questions[currentIndex];
+      let html = `<div class='question-box'><h3>${q.q}</h3>`;
+      q.options.forEach((opt, i) => {
+        html += `<div class='option' onclick='selectOption(${i})'>${opt}</div>`;
+      });
+      html += `<div class='solution' id='solution'></div>`;
+      html += `<button class='btn' onclick='nextQuestion()'>Save & Next</button></div>`;
+      document.getElementById('testSection').innerHTML = html;
+    }
+
+    function selectOption(i) {
+      selectedOption = i;
+      const opts = document.querySelectorAll('.option');
+      opts.forEach((opt, idx) => {
+        opt.classList.toggle('selected', idx === i);
+      });
+    }
+
+    function nextQuestion() {
+      if (selectedOption === null) {
+        alert("कृपया कोई विकल्प चुनें");
+        return;
+      }
+
+      const q = questionData[currentTest][currentIndex];
+      if (selectedOption === q.answer) {
+        correctAnswers.push({ ...q, selected: selectedOption });
+      } else {
+        wrongAnswers.push({ ...q, selected: selectedOption });
+      }
+
+      currentIndex++;
+      selectedOption = null;
+
+      if (currentIndex < 100) {
+        showQuestion();
+      } else {
+        showResult();
+      }
+    }
+
+    function showResult() {
+      clearInterval(timerInterval);
+      document.getElementById('testSection').classList.add('hidden');
+      document.getElementById('timer').classList.add('hidden');
+      let html = `<div class='summary-box'><h3>🎯 Test Complete!</h3>
+        <p>✅ सही उत्तर: ${correctAnswers.length}</p>
+        <p>❌ गलत उत्तर: ${wrongAnswers.length}</p>
+        <div class='filter-btns'>
+          <button class='btn' onclick='showReview("right")'>सिर्फ सही</button>
+          <button class='btn' onclick='showReview("wrong")'>सिर्फ गलत</button>
+        </div></div>`;
+      document.getElementById('resultSection').innerHTML = html;
+      document.getElementById('resultSection').classList.remove('hidden');
+    }
+
+    function showReview(type) {
+      const list = type === 'right' ? correctAnswers : wrongAnswers;
+      let html = `<div class='summary-box'><h3>${type === 'right' ? '✅ सही उत्तर' : '❌ गलत उत्तर'}</h3>`;
+      list.forEach((q) => {
+        html += `<div class='question-review'><h4>${q.q}</h4>
+          <p>आपका उत्तर: ${q.options[q.selected]}</p>
+          <p>सही उत्तर: ${q.options[q.answer]}</p>
+          <p><em>${q.solution}</em></p></div>`;
+      });
+      html += `<button class='btn' onclick='startTest("${currentTest}")'>पुनः टेस्ट करें</button></div>`;
+      document.getElementById('resultSection').innerHTML = html;
+    }
+
+    window.onpopstate = () => {
+      if (!document.getElementById('testSection').classList.contains('hidden')) {
+        const confirmExit = confirm("क्या आप टेस्ट से बाहर निकलना चाहते हैं?");
+        if (confirmExit) location.reload();
+        else history.pushState(null, null, location.href);
+      }
+    };
+    history.pushState(null, null, location.href);
+  </script>
+</body>
+</html>
