@@ -1,3 +1,4 @@
+<!-- Final Exam Cracker HTML -->
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -96,51 +97,41 @@
 
   <script>
     const questionData = {
-      math: Array.from({ length: 100 }, (_, i) => {
-        let a = i + 2, b = i + 3;
-        return {
-          q: `Q${i+1}: What is ${a} × ${b}?`,
-          options: [a * b, a + b, a - b, a * b + 1],
-          answer: 0,
-          solution: `${a} × ${b} = ${a * b}`
-        };
-      }),
-      hindi: Array.from({ length: 100 }, (_, i) => ({
-        q: `Q${i+1}: ‘पुस्तक’ का पर्यायवाची क्या है?`,
-        options: ['ग्रंथ', 'खिड़की', 'घोड़ा', 'कपड़ा'],
-        answer: 0,
-        solution: '‘पुस्तक’ का पर्यायवाची शब्द है - ग्रंथ।'
-      })),
-      science: Array.from({ length: 100 }, (_, i) => ({
-        q: `Q${i+1}: पानी का रासायनिक सूत्र क्या है?`,
-        options: ['H2O', 'CO2', 'O2', 'HCl'],
-        answer: 0,
-        solution: 'पानी का रासायनिक सूत्र H₂O होता है।'
-      })),
-      gk: Array.from({ length: 100 }, (_, i) => ({
-        q: `Q${i+1}: भारत की राजधानी क्या है?`,
-        options: ['नई दिल्ली', 'मुंबई', 'कोलकाता', 'चेन्नई'],
-        answer: 0,
-        solution: 'भारत की राजधानी नई दिल्ली है।'
-      })),
-      computer: Array.from({ length: 100 }, (_, i) => ({
-        q: `Q${i+1}: CPU का पूरा नाम क्या है?`,
-        options: ['Central Processing Unit', 'Computer Power Unit', 'Control Panel Unit', 'Central Program Utility'],
-        answer: 0,
-        solution: 'CPU का मतलब है Central Processing Unit।'
-      })),
-      reasoning: Array.from({ length: 100 }, (_, i) => ({
-        q: `Q${i+1}: 2, 4, 6, ?, 10 — ? में क्या आएगा?`,
-        options: ['8', '7', '9', '6'],
-        answer: 0,
-        solution: 'यह एक +2 की series है: अगला नंबर 8 होगा।'
-      })),
-      bihar: Array.from({ length: 100 }, (_, i) => ({
-        q: `Q${i+1}: बिहार के पहले मुख्यमंत्री कौन थे?`,
-        options: ['श्रीकृष्ण सिंह', 'नीतीश कुमार', 'लालू यादव', 'रामविलास पासवान'],
-        answer: 0,
-        solution: 'बिहार के पहले मुख्यमंत्री श्रीकृष्ण सिंह थे।'
-      })),
+      math: [
+        { q: "5 × 6 = ?", options: ["30", "11", "56", "65"], answer: 0, solution: "5 × 6 = 30" },
+        { q: "12 ÷ 4 = ?", options: ["2", "4", "3", "6"], answer: 2, solution: "12 ÷ 4 = 3" },
+        // ... Add more (20 total)
+      ],
+      hindi: [
+        { q: "‘जल’ का पर्यायवाची क्या है?", options: ["अग्नि", "नीर", "वायु", "भूमि"], answer: 1, solution: "जल = नीर" },
+        { q: "‘दृष्टि’ का विलोम क्या है?", options: ["अंधकार", "नेत्र", "अंधता", "प्रकाश"], answer: 2, solution: "दृष्टि का विलोम = अंधता" },
+        // ...
+      ],
+      science: [
+        { q: "पानी का रासायनिक सूत्र क्या है?", options: ["H2O", "CO2", "NaCl", "O2"], answer: 0, solution: "पानी का सूत्र H2O है।" },
+        { q: "सूरज से आने वाली ऊर्जा क्या कहलाती है?", options: ["सौर ऊर्जा", "पानी", "हीटर", "गैस"], answer: 0, solution: "सौर ऊर्जा = सूरज से आने वाली ऊर्जा।" },
+        // ...
+      ],
+      gk: [
+        { q: "भारत की राजधानी क्या है?", options: ["नई दिल्ली", "कोलकाता", "मुंबई", "जयपुर"], answer: 0, solution: "भारत की राजधानी नई दिल्ली है।" },
+        { q: "राष्ट्रीय पशु कौन है?", options: ["शेर", "चीता", "बाघ", "हाथी"], answer: 2, solution: "राष्ट्रीय पशु बाघ है।" },
+        // ...
+      ],
+      computer: [
+        { q: "CPU का पूरा नाम?", options: ["Central Processing Unit", "Computer Power Unit", "Control Program Utility", "None"], answer: 0, solution: "CPU = Central Processing Unit" },
+        { q: "www का मतलब?", options: ["World Wide Web", "Wide Web World", "Web World Wide", "None"], answer: 0, solution: "www = World Wide Web" },
+        // ...
+      ],
+      reasoning: [
+        { q: "2, 4, 6, ?, 10", options: ["8", "9", "10", "7"], answer: 0, solution: "Pattern: +2 → 8 आएगा" },
+        { q: "DOG = 26, CAT = ?", options: ["24", "27", "20", "21"], answer: 0, solution: "Alphabet value logic से CAT = 24" },
+        // ...
+      ],
+      bihar: [
+        { q: "बिहार के पहले मुख्यमंत्री कौन थे?", options: ["श्रीकृष्ण सिंह", "नीतीश कुमार", "लालू यादव", "रामविलास पासवान"], answer: 0, solution: "पहले मुख्यमंत्री = श्रीकृष्ण सिंह" },
+        { q: "बिहार का प्रसिद्ध नृत्य?", options: ["भांगड़ा", "कथकली", "झिझिया", "गरबा"], answer: 2, solution: "बिहार का नृत्य = झिझिया" },
+        // ...
+      ]
     };
 
     let currentTest = null, currentIndex = 0, selectedOption = null;
@@ -160,7 +151,6 @@
     window.onload = () => {
       const name = localStorage.getItem('examUserName');
       if (name) {
-        document.getElementById('username').value = name;
         document.getElementById('userNameDisplay').innerText = name;
         document.getElementById('nameSection').classList.add('hidden');
         document.getElementById('homeSection').classList.remove('hidden');
@@ -230,7 +220,7 @@
       currentIndex++;
       selectedOption = null;
 
-      if (currentIndex < 100) {
+      if (currentIndex < questionData[currentTest].length) {
         showQuestion();
       } else {
         showResult();
