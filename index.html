@@ -1,268 +1,808 @@
-<!-- Final Exam Cracker HTML -->
+
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Exam Cracker</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f0f4f8;
-      padding: 20px;
-      color: #333;
-    }
-    .container { max-width: 800px; margin: auto; }
-    .btn {
-      display: block;
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      background: #007bff;
-      color: white;
-      font-size: 16px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .btn:hover { background: #0056b3; }
-    .hidden { display: none; }
-    .question-box {
-      background: #fff;
-      padding: 15px;
-      border-radius: 6px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      margin-top: 15px;
-    }
-    .option {
-      background: #f1f1f1;
-      padding: 10px;
-      margin: 8px 0;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .option:hover { background: #c8e6c9; }
-    .selected { background: #90caf9 !important; }
-    .solution { color: #d32f2f; margin-top: 10px; }
-    .summary-box {
-      background: #fff;
-      padding: 20px;
-      margin-top: 20px;
-      border-radius: 6px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .question-review {
-      background: #f9fbe7;
-      border: 1px solid #cddc39;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 5px;
-    }
-    .filter-btns {
-      display: flex;
-      gap: 10px;
-      margin: 15px 0;
-    }
-    #timer {
-      font-size: 18px;
-      font-weight: bold;
-      margin-top: 10px;
-      color: #d32f2f;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGS Study Hub</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            transition: all 0.3s ease-in-out;
+        }
+        .dark body {
+            background-color: #1f2937;
+        }
+        .line-clamp-2 {
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+        }
+        .line-clamp-3 {
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e5e7eb;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #9ca3af;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+        .dark ::-webkit-scrollbar-track {
+            background: #374151;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+    </style>
 </head>
-<body>
-  <div class="container">
-    <div id="nameSection">
-      <h2>👤 कृपया अपना नाम दर्ज करें</h2>
-      <input type="text" id="username" placeholder="आपका नाम" style="padding:10px;width:100%;margin:10px 0;" />
-      <button class="btn" onclick="saveName()">Enter</button>
+<body class="bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
+
+    <div id="app">
+        <!-- The application will be rendered here by JavaScript -->
     </div>
 
-    <div id="homeSection" class="hidden">
-      <h2>नमस्ते, <span id="userNameDisplay"></span> 👋</h2>
-      <button class="btn" onclick="startTest('math')">🧮 Maths Test</button>
-      <button class="btn" onclick="startTest('hindi')">📝 Hindi Test</button>
-      <button class="btn" onclick="startTest('science')">🔬 Science Test</button>
-      <button class="btn" onclick="startTest('gk')">🌍 GK/GS</button>
-      <button class="btn" onclick="startTest('computer')">💻 Computer</button>
-      <button class="btn" onclick="startTest('reasoning')">🧠 Reasoning</button>
-      <button class="btn" onclick="startTest('bihar')">📘 Bihar GK</button>
-      <div id="timer" class="hidden"></div>
-      <div id="testSection" class="hidden"></div>
-      <div id="resultSection" class="hidden"></div>
-    </div>
-  </div>
+    <!-- Firebase SDK Imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, collection, addDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  <script>
-    const questionData = {
-      math: [
-        { q: "5 × 6 = ?", options: ["30", "11", "56", "65"], answer: 0, solution: "5 × 6 = 30" },
-        { q: "12 ÷ 4 = ?", options: ["2", "4", "3", "6"], answer: 2, solution: "12 ÷ 4 = 3" },
-        // ... Add more (20 total)
-      ],
-      hindi: [
-        { q: "‘जल’ का पर्यायवाची क्या है?", options: ["अग्नि", "नीर", "वायु", "भूमि"], answer: 1, solution: "जल = नीर" },
-        { q: "‘दृष्टि’ का विलोम क्या है?", options: ["अंधकार", "नेत्र", "अंधता", "प्रकाश"], answer: 2, solution: "दृष्टि का विलोम = अंधता" },
-        // ...
-      ],
-      science: [
-        { q: "पानी का रासायनिक सूत्र क्या है?", options: ["H2O", "CO2", "NaCl", "O2"], answer: 0, solution: "पानी का सूत्र H2O है।" },
-        { q: "सूरज से आने वाली ऊर्जा क्या कहलाती है?", options: ["सौर ऊर्जा", "पानी", "हीटर", "गैस"], answer: 0, solution: "सौर ऊर्जा = सूरज से आने वाली ऊर्जा।" },
-        // ...
-      ],
-      gk: [
-        { q: "भारत की राजधानी क्या है?", options: ["नई दिल्ली", "कोलकाता", "मुंबई", "जयपुर"], answer: 0, solution: "भारत की राजधानी नई दिल्ली है।" },
-        { q: "राष्ट्रीय पशु कौन है?", options: ["शेर", "चीता", "बाघ", "हाथी"], answer: 2, solution: "राष्ट्रीय पशु बाघ है।" },
-        // ...
-      ],
-      computer: [
-        { q: "CPU का पूरा नाम?", options: ["Central Processing Unit", "Computer Power Unit", "Control Program Utility", "None"], answer: 0, solution: "CPU = Central Processing Unit" },
-        { q: "www का मतलब?", options: ["World Wide Web", "Wide Web World", "Web World Wide", "None"], answer: 0, solution: "www = World Wide Web" },
-        // ...
-      ],
-      reasoning: [
-        { q: "2, 4, 6, ?, 10", options: ["8", "9", "10", "7"], answer: 0, solution: "Pattern: +2 → 8 आएगा" },
-        { q: "DOG = 26, CAT = ?", options: ["24", "27", "20", "21"], answer: 0, solution: "Alphabet value logic से CAT = 24" },
-        // ...
-      ],
-      bihar: [
-        { q: "बिहार के पहले मुख्यमंत्री कौन थे?", options: ["श्रीकृष्ण सिंह", "नीतीश कुमार", "लालू यादव", "रामविलास पासवान"], answer: 0, solution: "पहले मुख्यमंत्री = श्रीकृष्ण सिंह" },
-        { q: "बिहार का प्रसिद्ध नृत्य?", options: ["भांगड़ा", "कथकली", "झिझिया", "गरबा"], answer: 2, solution: "बिहार का नृत्य = झिझिया" },
-        // ...
-      ]
-    };
+        // Global state object, similar to a React component's state
+        let state = {
+            db: null,
+            auth: null,
+            userId: null,
+            isAdmin: false,
+            isDrawerOpen: false,
+            showAdminLogin: false,
+            currentPage: 'home',
+            content: [],
+            adminContent: { title: '', description: '', type: 'Course', status: 'Free', label: 'Free Course', link: '' },
+            adminLogin: { id: '', password: '' },
+            loginError: '',
+            cartItems: [],
+            staticPages: {},
+            editingContentId: null,
+            editedContent: {},
+            editingPage: null,
+            pageContentToEdit: '',
+            currentFilter: 'All Courses',
+            isCategoryView: true,
+            message: '',
+            pageHistory: [],
+            isSubmitting: false,
+            loading: true,
+            expandedDescriptions: {},
+            selectedContentId: null // New state variable to track the selected content for single view
+        };
 
-    let currentTest = null, currentIndex = 0, selectedOption = null;
-    let correctAnswers = [], wrongAnswers = [], timeLeft = 120 * 60;
-    let timerInterval = null;
+        const appDiv = document.getElementById('app');
+        const ADMIN_ID = 'Sachin';
+        const ADMIN_PASS = '802165';
 
-    function saveName() {
-      const name = document.getElementById('username').value.trim();
-      if (name) {
-        localStorage.setItem('examUserName', name);
-        document.getElementById('userNameDisplay').innerText = name;
-        document.getElementById('nameSection').classList.add('hidden');
-        document.getElementById('homeSection').classList.remove('hidden');
-      }
-    }
+        // Helper function to update state and trigger a re-render
+        function setState(newState) {
+            state = { ...state, ...newState };
+            renderApp();
+        }
 
-    window.onload = () => {
-      const name = localStorage.getItem('examUserName');
-      if (name) {
-        document.getElementById('userNameDisplay').innerText = name;
-        document.getElementById('nameSection').classList.add('hidden');
-        document.getElementById('homeSection').classList.remove('hidden');
-      }
-    };
+        // --- UI Rendering Functions (Component-like structure) ---
+        
+        function renderApp() {
+            // Unbind previous event listener to prevent duplicate handlers
+            appDiv.removeEventListener('click', handleGlobalClick);
 
-    function startTest(type) {
-      if (!questionData[type]) return;
-      currentTest = type;
-      currentIndex = 0;
-      selectedOption = null;
-      correctAnswers = [];
-      wrongAnswers = [];
-      timeLeft = 120 * 60;
-      clearInterval(timerInterval);
-      document.getElementById('timer').classList.remove('hidden');
-      timerInterval = setInterval(updateTimer, 1000);
-      document.getElementById('testSection').classList.remove('hidden');
-      document.getElementById('resultSection').classList.add('hidden');
-      showQuestion();
-    }
+            if (state.loading) {
+                appDiv.innerHTML = renderLoadingScreen();
+                return;
+            }
 
-    function updateTimer() {
-      const min = Math.floor(timeLeft / 60);
-      const sec = timeLeft % 60;
-      document.getElementById('timer').innerText = `⏰ समय बचा है: ${min} मिनट ${sec} सेकंड`;
-      timeLeft--;
-      if (timeLeft < 0) {
-        clearInterval(timerInterval);
-        showResult();
-      }
-    }
+            appDiv.innerHTML = `
+                ${renderMessage()}
+                ${renderHeader()}
+                <main class="pt-20 p-4 min-h-screen">
+                    ${renderPage()}
+                </main>
+                ${renderDrawer()}
+                ${state.isDrawerOpen ? '<div class="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300" data-action="closeDrawer"></div>' : ''}
+            `;
+            // Attach a single, main event listener to the app container
+            appDiv.addEventListener('click', handleGlobalClick);
+        }
 
-    function showQuestion() {
-      const questions = questionData[currentTest];
-      const q = questions[currentIndex];
-      let html = `<div class='question-box'><h3>${q.q}</h3>`;
-      q.options.forEach((opt, i) => {
-        html += `<div class='option' onclick='selectOption(${i})'>${opt}</div>`;
-      });
-      html += `<div class='solution' id='solution'></div>`;
-      html += `<button class='btn' onclick='nextQuestion()'>Save & Next</button></div>`;
-      document.getElementById('testSection').innerHTML = html;
-    }
+        function renderLoadingScreen() {
+            return `
+                <div class="flex items-center justify-center min-h-screen">
+                    <div class="text-center">
+                        <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+                        <p class="mt-4 text-lg font-semibold text-gray-500 dark:text-gray-400">Loading...</p>
+                    </div>
+                </div>
+            `;
+        }
 
-    function selectOption(i) {
-      selectedOption = i;
-      const opts = document.querySelectorAll('.option');
-      opts.forEach((opt, idx) => {
-        opt.classList.toggle('selected', idx === i);
-      });
-    }
+        function renderMessage() {
+            return state.message ? `
+                <div id="messageBox" class="fixed top-20 left-1/2 -translate-x-1/2 bg-green-500 text-white py-2 px-4 rounded-lg shadow-xl z-50 transition-all duration-300 transform animate-pulse">
+                    ${state.message}
+                </div>
+            ` : '';
+        }
 
-    function nextQuestion() {
-      if (selectedOption === null) {
-        alert("कृपया कोई विकल्प चुनें");
-        return;
-      }
+        function renderHeader() {
+            return `
+                <header class="fixed top-0 left-0 w-full bg-gradient-to-r from-blue-600 to-purple-700 text-white shadow-lg p-4 flex items-center justify-between z-40 transition-colors duration-300">
+                    <div class="flex items-center gap-4">
+                        ${state.currentPage !== 'home' ? `
+                            <button class="p-2 rounded-full hover:bg-white hover:bg-opacity-20 transition-colors duration-200" data-action="goBack">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                        ` : ''}
+                        <h1 class="text-2xl font-bold text-white">SGS STUDY HUB</h1>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button class="flex items-center gap-1 p-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors duration-200 text-white" data-action="navigateTo" data-page="cart">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-cart"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                            <span class="relative">
+                                View Cart
+                                ${state.cartItems.length > 0 ? `
+                                    <span class="absolute -top-1 -right-1 bg-red-400 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                                        ${state.cartItems.length}
+                                    </span>
+                                ` : ''}
+                            </span>
+                        </button>
+                        <button class="p-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors duration-200 text-white" data-action="openDrawer">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                </header>
+            `;
+        }
 
-      const q = questionData[currentTest][currentIndex];
-      if (selectedOption === q.answer) {
-        correctAnswers.push({ ...q, selected: selectedOption });
-      } else {
-        wrongAnswers.push({ ...q, selected: selectedOption });
-      }
+        function renderDrawer() {
+            return `
+                <div class="fixed top-0 right-0 h-full w-80 bg-gradient-to-b from-blue-700 to-purple-800 text-white shadow-lg z-50 transform transition-transform duration-300 ${state.isDrawerOpen ? 'translate-x-0' : 'translate-x-full'}">
+                    <div class="flex justify-between items-center p-4 border-b border-blue-600">
+                        <h2 class="text-xl font-bold text-white">Menu</h2>
+                        <button class="p-2 rounded-full hover:bg-white hover:bg-opacity-20" data-action="closeDrawer">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                        </button>
+                    </div>
+                    <nav class="p-4 flex flex-col gap-2">
+                        ${state.isAdmin ? `
+                            <button class="w-full text-left flex items-center gap-2 p-2 rounded-md hover:bg-blue-600 transition-colors duration-200 text-white" data-action="navigateTo" data-page="admin">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pen-tool"><path d="M12 19V5"/><path d="M5 12H20"/><path d="m18 19 3-3-3-3"/><path d="m6 5-3 3 3 3"/></svg> Admin Panel
+                            </button>
+                            <button class="w-full text-left flex items-center gap-2 p-2 rounded-md hover:bg-red-600 transition-colors duration-200 text-white" data-action="adminLogout">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg> Logout
+                            </button>
+                        ` : ''}
+                        ${['About', 'privacy policy', 'terms & conditions', 'refund & cancellation', 'pricing', 'shipping', 'contact us'].map(page => `
+                            <button class="w-full text-left flex items-center gap-2 p-2 rounded-md hover:bg-blue-600 transition-colors duration-200 capitalize text-white" data-action="navigateTo" data-page="${page.replace(/ /g, '_').toLowerCase()}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                                ${page.replace(/_/g, ' ')}
+                            </button>
+                        `).join('')}
+                    </nav>
+                </div>
+            `;
+        }
 
-      currentIndex++;
-      selectedOption = null;
+        function renderPage() {
+            switch(state.currentPage) {
+                case 'home':
+                    return renderHomePage();
+                case 'admin':
+                    return state.isAdmin ? renderAdminPanel() : renderHomePage();
+                case 'cart':
+                    return renderCart();
+                case 'study':
+                    return renderStudyHub();
+                case 'singleContent': // New case for rendering a single content item
+                    return renderSingleContent();
+                default:
+                    const content = state.staticPages[state.currentPage] || '';
+                    return renderStaticPage(state.currentPage, content);
+            }
+        }
 
-      if (currentIndex < questionData[currentTest].length) {
-        showQuestion();
-      } else {
-        showResult();
-      }
-    }
+        function renderHomePage() {
+            return `
+                <div class="min-h-screen flex flex-col items-center justify-center p-4 text-center">
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-gray-800 dark:text-gray-100 mb-6">Welcome to SGS Study Hub</h2>
+                    <div class="flex flex-col md:flex-row gap-6 mt-8">
+                        <button class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold py-4 px-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 text-lg" data-action="navigateTo" data-page="study">
+                            📚 Start Study
+                        </button>
+                        ${!state.isAdmin ? `
+                            <div class="relative inline-block">
+                                <button class="bg-gradient-to-r from-gray-700 to-gray-900 text-white font-bold py-4 px-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 text-lg" data-action="toggleAdminLogin">
+                                    🔑 Admin Login
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down transform transition-transform duration-300 ${state.showAdminLogin ? 'rotate-180' : 'rotate-0'}"><path d="m6 9 6 6 6-6"/></svg>
+                                </button>
+                                ${state.showAdminLogin ? `
+                                    <form class="absolute top-full mt-2 w-full max-w-sm bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl transition-all duration-300 transform-origin-top" data-form="adminLogin">
+                                        <div class="flex flex-col gap-4">
+                                            <input type="text" name="id" placeholder="ID" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors duration-200 text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600"/>
+                                            <input type="password" name="password" placeholder="Password" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors duration-200 text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600"/>
+                                            ${state.loginError ? `<p class="text-red-500 text-center font-semibold">${state.loginError}</p>` : ''}
+                                            <button type="submit" class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-colors duration-200 mt-2 shadow-md hover:shadow-lg">Login</button>
+                                        </div>
+                                    </form>
+                                ` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
 
-    function showResult() {
-      clearInterval(timerInterval);
-      document.getElementById('testSection').classList.add('hidden');
-      document.getElementById('timer').classList.add('hidden');
-      let html = `<div class='summary-box'><h3>🎯 Test Complete!</h3>
-        <p>✅ सही उत्तर: ${correctAnswers.length}</p>
-        <p>❌ गलत उत्तर: ${wrongAnswers.length}</p>
-        <div class='filter-btns'>
-          <button class='btn' onclick='showReview("right")'>सिर्फ सही</button>
-          <button class='btn' onclick='showReview("wrong")'>सिर्फ गलत</button>
-        </div></div>`;
-      document.getElementById('resultSection').innerHTML = html;
-      document.getElementById('resultSection').classList.remove('hidden');
-    }
+        function renderAdminPanel() {
+            return `
+                <div class="container mx-auto p-4 md:p-8">
+                    <h2 class="text-3xl font-extrabold text-center mb-8 text-blue-600 dark:text-blue-400">Admin Panel</h2>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg mb-8 border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Post New Content</h3>
+                        <form data-form="postContent" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="text" name="title" placeholder="Title" value="${state.adminContent.title}" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600" required />
+                            <textarea name="description" placeholder="Description" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus-ring-blue-500 outline-none resize-y text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600 col-span-2" rows="4" required>${state.adminContent.description}</textarea>
+                            <select name="type" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600">
+                                <option value="Course" ${state.adminContent.type === 'Course' ? 'selected' : ''}>Course</option>
+                                <option value="Test series" ${state.adminContent.type === 'Test series' ? 'selected' : ''}>Test series</option>
+                            </select>
+                            <select name="status" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600">
+                                <option value="Paid" ${state.adminContent.status === 'Paid' ? 'selected' : ''}>Paid</option>
+                                <option value="Free" ${state.adminContent.status === 'Free' ? 'selected' : ''}>Free</option>
+                            </select>
+                            <input type="text" name="link" placeholder="${state.adminContent.status === 'Paid' ? 'Paid Course Link' : 'Free Course/PDF Link'}" value="${state.adminContent.link}" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600 col-span-2" />
+                            <select name="label" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600 col-span-2">
+                                <option value="All Courses" ${state.adminContent.label === 'All Courses' ? 'selected' : ''}>All Courses</option>
+                                <option value="Paid Course" ${state.adminContent.label === 'Paid Course' ? 'selected' : ''}>Paid Course</option>
+                                <option value="Free Course" ${state.adminContent.label === 'Free Course' ? 'selected' : ''}>Free Course</option>
+                                <option value="Paid Test Series" ${state.adminContent.label === 'Paid Test Series' ? 'selected' : ''}>Paid Test Series</option>
+                                <option value="Free Test Series" ${state.adminContent.label === 'Free Test Series' ? 'selected' : ''}>Free Test Series</option>
+                                <option value="VKSU" ${state.adminContent.label === 'VKSU' ? 'selected' : ''}>VKSU</option>
+                            </select>
+                            <button type="submit" class="col-span-2 bg-gradient-to-r from-green-500 to-teal-600 text-white font-bold py-3 px-6 rounded-lg hover:from-green-600 hover:to-teal-700 transition-colors duration-200 mt-4 shadow-md hover:shadow-lg" ${state.isSubmitting ? 'disabled' : ''}>${state.isSubmitting ? 'Posting...' : 'Post Content'}</button>
+                        </form>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg mb-8 border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Manage Existing Content</h3>
+                        <div class="space-y-4" data-container="contentList">
+                            ${state.content.length === 0 ? `<p class="text-center text-gray-500">No content available.</p>` : state.content.map(item => `
+                                <div class="p-4 border border-gray-300 rounded-lg dark:border-gray-700 bg-gray-50 dark:bg-gray-700 shadow-sm">
+                                    ${state.editingContentId === item.id ? `
+                                        <div class="flex flex-col gap-2">
+                                            <input type="text" name="title" value="${state.editedContent.title}" data-id="${item.id}" class="p-2 border rounded-md text-gray-900 dark:text-white dark:bg-gray-600" />
+                                            <textarea name="description" data-id="${item.id}" class="p-2 border rounded-md text-gray-900 dark:text-white dark:bg-gray-600" rows="3">${state.editedContent.description}</textarea>
+                                            <input type="text" name="link" value="${state.editedContent.link}" data-id="${item.id}" class="p-2 border rounded-md text-gray-900 dark:text-white dark:bg-gray-600" placeholder="Link" />
+                                            <select name="label" data-id="${item.id}" class="p-2 border rounded-md text-gray-900 dark:text-white dark:bg-gray-600">
+                                                <option value="All Courses" ${state.editedContent.label === 'All Courses' ? 'selected' : ''}>All Courses</option>
+                                                <option value="Paid Course" ${state.editedContent.label === 'Paid Course' ? 'selected' : ''}>Paid Course</option>
+                                                <option value="Free Course" ${state.editedContent.label === 'Free Course' ? 'selected' : ''}>Free Course</option>
+                                                <option value="Paid Test Series" ${state.editedContent.label === 'Paid Test Series' ? 'selected' : ''}>Paid Test Series</option>
+                                                <option value="Free Test Series" ${state.editedContent.label === 'Free Test Series' ? 'selected' : ''}>Free Test Series</option>
+                                                <option value="VKSU" ${state.editedContent.label === 'VKSU' ? 'selected' : ''}>VKSU</option>
+                                            </select>
+                                            <div class="flex gap-2 mt-2">
+                                                <button data-action="saveEditContent" data-id="${item.id}" class="bg-green-500 text-white py-1 px-3 rounded-md hover:bg-green-600 transition-colors shadow-sm">Save</button>
+                                                <button data-action="cancelEditContent" class="bg-gray-400 text-white py-1 px-3 rounded-md hover:bg-gray-500 transition-colors shadow-sm">Cancel</button>
+                                            </div>
+                                        </div>
+                                    ` : `
+                                        <div>
+                                            <h4 class="text-xl font-bold text-blue-600 dark:text-blue-300">${item.title}</h4>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">${item.label} | ${item.type} | ${item.status}</p>
+                                            <p class="mt-2 text-gray-600 dark:text-gray-300 ${state.expandedDescriptions[item.id] ? '' : 'line-clamp-2'}">${item.description}</p>
+                                            ${item.description && item.description.length > 100 ? `
+                                                <button data-action="toggleDescription" data-id="${item.id}" class="text-blue-500 text-sm mt-1 hover:underline">
+                                                    ${state.expandedDescriptions[item.id] ? 'Read Less' : 'Read More'}
+                                                </button>
+                                            ` : ''}
+                                            <div class="flex gap-2 mt-2">
+                                                <button data-action="editContent" data-id="${item.id}" class="bg-yellow-500 text-white py-1 px-3 rounded-md hover:bg-yellow-600 transition-colors shadow-sm">Edit</button>
+                                                <button data-action="deleteContent" data-id="${item.id}" class="bg-red-500 text-white py-1 px-3 rounded-md hover:bg-red-600 transition-colors shadow-sm">Delete</button>
+                                            </div>
+                                        </div>
+                                    `}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Manage Static Pages</h3>
+                        <div class="space-y-4" data-container="staticPagesList">
+                            ${['about', 'privacy policy', 'terms & conditions', 'refund & cancellation', 'pricing', 'shipping', 'contact us'].map(page => {
+                                const normalizedPageKey = page.replace(/ /g, '_').toLowerCase();
+                                const pageContent = state.staticPages[normalizedPageKey] || 'No content available.';
+                                return `
+                                    <div class="p-4 border border-gray-300 rounded-lg dark:border-gray-700 bg-gray-50 dark:bg-gray-700 shadow-sm">
+                                        <h4 class="text-xl font-bold capitalize text-blue-600 dark:text-blue-300">${page.replace(/_/g, ' ')}</h4>
+                                        ${state.editingPage === normalizedPageKey ? `
+                                            <div class="flex flex-col gap-2">
+                                                <textarea name="pageContent" class="p-3 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none resize-y text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600" rows="10">${state.pageContentToEdit}</textarea>
+                                                <button data-action="saveEditStaticPage" data-pagekey="${normalizedPageKey}" class="bg-green-500 text-white py-2 px-4 rounded-md font-semibold hover:bg-green-600 transition-colors shadow-md">Save</button>
+                                            </div>
+                                        ` : `
+                                            <div class="flex justify-between items-center">
+                                                <p class="mt-2 text-gray-600 dark:text-gray-300 line-clamp-2">${pageContent}</p>
+                                                <button data-action="editStaticPage" data-pagekey="${normalizedPageKey}" class="bg-blue-500 text-white py-2 px-4 rounded-md font-semibold hover:bg-blue-600 transition-colors shadow-md">Edit</button>
+                                            </div>
+                                        `}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderCart() {
+            return `
+                <div class="container mx-auto p-4 md:p-8">
+                    <h2 class="text-3xl font-extrabold text-center mb-8 text-blue-600 dark:text-blue-400">Your Cart</h2>
+                    ${state.cartItems.length === 0 ? `<p class="text-center text-gray-500 text-lg">Your cart is empty.</p>` : `
+                        <div class="space-y-4 max-w-2xl mx-auto" data-container="cartItemsList">
+                            ${state.cartItems.map(item => `
+                                <div class="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                                    <div>
+                                        <h4 class="text-xl font-bold text-blue-600 dark:text-blue-300">${item.title}</h4>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">${item.label} - ${item.type}</p>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <!-- New button to view the full details of the cart item -->
+                                        <button data-action="viewCartItem" data-id="${item.id}" class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors shadow-sm">View Details</button>
+                                        <button data-action="removeItem" data-id="${item.id}" class="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition-colors shadow-sm">Remove</button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="text-center mt-8">
+                            <button class="bg-gradient-to-r from-green-500 to-teal-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:from-green-600 hover:to-teal-700 transition-colors duration-200 text-lg">
+                                Checkout (${state.cartItems.length} items)
+                            </button>
+                        </div>
+                    `}
+                </div>
+            `;
+        }
 
-    function showReview(type) {
-      const list = type === 'right' ? correctAnswers : wrongAnswers;
-      let html = `<div class='summary-box'><h3>${type === 'right' ? '✅ सही उत्तर' : '❌ गलत उत्तर'}</h3>`;
-      list.forEach((q) => {
-        html += `<div class='question-review'><h4>${q.q}</h4>
-          <p>आपका उत्तर: ${q.options[q.selected]}</p>
-          <p>सही उत्तर: ${q.options[q.answer]}</p>
-          <p><em>${q.solution}</em></p></div>`;
-      });
-      html += `<button class='btn' onclick='startTest("${currentTest}")'>पुनः टेस्ट करें</button></div>`;
-      document.getElementById('resultSection').innerHTML = html;
-    }
+        function renderStaticPage(title, content) {
+            const normalizedTitle = title.replace(/_/g, ' ');
+            return `
+                <div class="container mx-auto p-4 md:p-8">
+                    <h2 class="text-3xl font-extrabold text-center mb-8 text-blue-600 dark:text-blue-400 capitalize">${normalizedTitle}</h2>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg mb-8 border border-gray-200 dark:border-gray-700">
+                        ${state.editingPage === title ? `
+                            <div class="flex flex-col gap-4">
+                                <textarea name="pageContent" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-y text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600" rows="15">${state.pageContentToEdit}</textarea>
+                                <button data-action="saveEditStaticPage" data-pagekey="${title}" class="bg-green-500 text-white py-2 px-4 rounded-md font-semibold hover:bg-green-600 transition-colors shadow-md">Save</button>
+                            </div>
+                        ` : `
+                            <div class="prose dark:prose-invert max-w-full">
+                                <p>${content || 'No content available.'}</p>
+                            </div>
+                            ${state.isAdmin ? `
+                                <div class="text-right mt-4">
+                                    <button data-action="editStaticPage" data-pagekey="${title}" class="bg-blue-500 text-white py-2 px-4 rounded-md font-semibold hover:bg-blue-600 transition-colors shadow-md">Edit</button>
+                                </div>
+                            ` : ''}
+                        `}
+                    </div>
+                </div>
+            `;
+        }
 
-    window.onpopstate = () => {
-      if (!document.getElementById('testSection').classList.contains('hidden')) {
-        const confirmExit = confirm("क्या आप टेस्ट से बाहर निकलना चाहते हैं?");
-        if (confirmExit) location.reload();
-        else history.pushState(null, null, location.href);
-      }
-    };
-    history.pushState(null, null, location.href);
-  </script>
+        function renderStudyHub() {
+            const studyHubCategories = [
+                { name: 'All Courses', emoji: '📦', from: 'from-blue-500', to: 'to-indigo-600' },
+                { name: 'Paid Course', emoji: '💰', from: 'from-green-500', to: 'to-emerald-600' },
+                { name: 'Free Course', emoji: '🆓', from: 'from-purple-500', to: 'to-pink-600' },
+                { name: 'Paid Test Series', emoji: '🏆', from: 'from-yellow-500', to: 'to-orange-600' },
+                { name: 'Free Test Series', emoji: '✅', from: 'from-teal-500', to: 'to-cyan-600' },
+                { name: 'VKSU', emoji: '🎓', from: 'from-red-500', to: 'to-rose-600' },
+            ];
+
+            const filteredContent = state.currentFilter === 'All Courses'
+                ? state.content
+                : state.content.filter(item => item.label === state.currentFilter);
+
+            return `
+                <div class="container mx-auto p-4 md:p-8">
+                    <h2 class="text-3xl font-extrabold text-center mb-8 text-blue-600 dark:text-blue-400">Study Hub</h2>
+                    ${state.isCategoryView ? `
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4" data-container="categoryList">
+                            ${studyHubCategories.map(category => `
+                                <button class="p-4 rounded-xl font-bold text-sm md:text-base transition-all duration-300 shadow-lg transform hover:scale-105 flex flex-col items-center justify-center text-center bg-gradient-to-r ${category.from} ${category.to} text-white aspect-square" data-action="filterByCategory" data-filter="${category.name}">
+                                    <span class="text-3xl">${category.emoji}</span>
+                                    <span class="mt-2 text-sm">${category.name}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+                    ` : `
+                        <div>
+                            <button class="mb-4 flex items-center gap-2 text-blue-500 hover:text-blue-700 font-semibold transition-colors" data-action="backToCategories">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left"><path d="m15 18-6-6 6-6"/></svg>
+                                View All Categories
+                            </button>
+                            <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">${state.currentFilter}</h3>
+                            ${filteredContent.length === 0 ? `<p class="text-center text-gray-500">No content available in this category.</p>` : `
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-container="contentGrid">
+                                    ${filteredContent.map(item => `
+                                        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 flex flex-col h-full">
+                                            <h4 class="text-xl font-bold text-blue-600 dark:text-blue-300 mb-2">${item.title}</h4>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">${item.label} | ${item.type}</p>
+                                            <p class="text-gray-600 dark:text-gray-300 flex-grow ${state.expandedDescriptions[item.id] ? '' : 'line-clamp-3'}">${item.description}</p>
+                                            ${item.description && item.description.length > 150 ? `
+                                                <button data-action="toggleDescription" data-id="${item.id}" class="text-blue-500 text-sm mt-2 font-semibold hover:underline self-start">
+                                                    ${state.expandedDescriptions[item.id] ? 'Read Less' : 'Read More'}
+                                                </button>
+                                            ` : ''}
+                                            <div class="mt-auto pt-4">
+                                                ${item.status === 'Paid' ? `
+                                                    <div class="flex flex-col gap-2">
+                                                        <button data-action="addToCart" data-id="${item.id}" class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-2 rounded-lg font-semibold hover:from-blue-600 hover:to-indigo-700 transition-colors shadow-md">Add to Cart</button>
+                                                        ${item.link ? `<a href="${item.link}" target="_blank" class="block text-center bg-gray-700 text-white py-2 rounded-lg font-semibold hover:bg-gray-800 transition-colors shadow-md">Buy Now</a>` : ''}
+                                                    </div>
+                                                ` : item.link ? `
+                                                    <a href="${item.link}" target="_blank" class="block text-center bg-gradient-to-r from-green-500 to-teal-600 text-white py-2 rounded-lg font-semibold hover:from-green-600 hover:to-teal-700 transition-colors shadow-md">View Free PDF</a>
+                                                ` : ''}
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `}
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        // New function to render a single content item in full detail
+        function renderSingleContent() {
+            const item = state.content.find(i => i.id === state.selectedContentId);
+            if (!item) {
+                return `
+                    <div class="container mx-auto p-4 md:p-8 text-center text-red-500">
+                        <h2 class="text-2xl font-bold">Content not found.</h2>
+                        <p class="mt-4">Please go back and try again.</p>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="container mx-auto p-4 md:p-8">
+                    <h2 class="text-3xl font-extrabold text-center mb-8 text-blue-600 dark:text-blue-400">Content Details</h2>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 max-w-2xl mx-auto">
+                        <h3 class="text-2xl font-bold text-blue-600 dark:text-blue-300 mb-2">${item.title}</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">${item.label} | ${item.type}</p>
+                        <p class="text-gray-600 dark:text-gray-300 mb-6">${item.description}</p>
+                        
+                        <div class="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
+                            ${item.status === 'Paid' ? `
+                                <div class="flex flex-col gap-2">
+                                    <button data-action="addToCart" data-id="${item.id}" class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-2 rounded-lg font-semibold hover:from-blue-600 hover:to-indigo-700 transition-colors shadow-md">Add to Cart</button>
+                                    ${item.link ? `<a href="${item.link}" target="_blank" class="block text-center bg-gray-700 text-white py-2 rounded-lg font-semibold hover:bg-gray-800 transition-colors shadow-md">Buy Now</a>` : ''}
+                                </div>
+                            ` : item.link ? `
+                                <a href="${item.link}" target="_blank" class="block text-center bg-gradient-to-r from-green-500 to-teal-600 text-white py-2 rounded-lg font-semibold hover:from-green-600 hover:to-teal-700 transition-colors shadow-md">View Free PDF</a>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Event Delegation Logic ---
+
+        function handleGlobalClick(e) {
+            const target = e.target.closest('[data-action]');
+            if (!target) return;
+
+            const action = target.dataset.action;
+            const page = target.dataset.page;
+            const id = target.dataset.id;
+            const filter = target.dataset.filter;
+            const pageKey = target.dataset.pagekey;
+
+            switch (action) {
+                case 'navigateTo':
+                    navigateToPage(page);
+                    break;
+                case 'goBack':
+                    handleBack();
+                    break;
+                case 'openDrawer':
+                    setState({ isDrawerOpen: true });
+                    break;
+                case 'closeDrawer':
+                    setState({ isDrawerOpen: false });
+                    break;
+                case 'toggleAdminLogin':
+                    setState({ showAdminLogin: !state.showAdminLogin, loginError: '' });
+                    break;
+                case 'adminLogout':
+                    handleAdminLogout();
+                    break;
+                case 'filterByCategory':
+                    setState({ currentFilter: filter, isCategoryView: false });
+                    break;
+                case 'backToCategories':
+                    setState({ isCategoryView: true, currentFilter: 'All Courses' });
+                    break;
+                case 'toggleDescription':
+                    setState({ expandedDescriptions: { ...state.expandedDescriptions, [id]: !state.expandedDescriptions[id] }});
+                    break;
+                case 'addToCart':
+                    const item = state.content.find(i => i.id === id);
+                    if (item && !state.cartItems.some(cartItem => cartItem.id === id)) {
+                        setState({ cartItems: [...state.cartItems, item] });
+                        showMessage('Added to cart!');
+                    }
+                    break;
+                case 'removeItem':
+                    setState({ cartItems: state.cartItems.filter(item => item.id !== id) });
+                    showMessage('Item removed from cart!');
+                    break;
+                case 'viewCartItem': // New action to view a single item from the cart
+                    setState({ currentPage: 'singleContent', selectedContentId: id });
+                    break;
+                case 'editContent':
+                    const contentToEdit = state.content.find(i => i.id === id);
+                    setState({ editingContentId: id, editedContent: contentToEdit });
+                    break;
+                case 'deleteContent':
+                    handleDeleteContent(id);
+                    break;
+                case 'saveEditContent':
+                    handleSaveEditContent(id);
+                    break;
+                case 'cancelEditContent':
+                    setState({ editingContentId: null, editedContent: {} });
+                    break;
+                case 'editStaticPage':
+                    setState({ editingPage: pageKey, pageContentToEdit: state.staticPages[pageKey] || '' });
+                    break;
+                case 'saveEditStaticPage':
+                    handleSaveEditStaticPage(pageKey);
+                    break;
+            }
+        }
+
+        // --- Form Submission Handlers (Delegated) ---
+
+        appDiv.addEventListener('submit', (e) => {
+            const form = e.target.closest('[data-form]');
+            if (!form) return;
+            e.preventDefault();
+
+            const formType = form.dataset.form;
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            switch (formType) {
+                case 'adminLogin':
+                    handleAdminLogin(data);
+                    break;
+                case 'postContent':
+                    handlePostContent(data, form);
+                    break;
+            }
+        });
+
+        // --- Logic Functions ---
+
+        function showMessage(msg) {
+            setState({ message: msg });
+            setTimeout(() => setState({ message: '' }), 3000);
+        }
+
+        function navigateToPage(newPage) {
+            if (state.currentPage !== newPage) {
+                state.pageHistory.push(state.currentPage);
+                setState({ currentPage: newPage, isDrawerOpen: false, isCategoryView: true, currentFilter: 'All Courses' });
+            } else {
+                setState({ isDrawerOpen: false });
+            }
+        }
+
+        function handleBack() {
+            if (state.currentPage === 'study' && !state.isCategoryView) {
+                setState({ isCategoryView: true, currentFilter: 'All Courses' });
+            } else if (state.pageHistory.length > 0) {
+                const prevPage = state.pageHistory.pop();
+                setState({ currentPage: prevPage, pageHistory: state.pageHistory, isCategoryView: prevPage === 'study' });
+            } else {
+                if (state.currentPage !== 'home') {
+                    setState({ currentPage: 'home', isCategoryView: true, currentFilter: 'All Courses' });
+                }
+            }
+        }
+
+        function handleAdminLogin(data) {
+            if (data.id === ADMIN_ID && data.password === ADMIN_PASS) {
+                setState({ isAdmin: true, showAdminLogin: false, loginError: '' });
+                navigateToPage('admin');
+                showMessage('Admin login successful!');
+            } else {
+                setState({ loginError: 'Incorrect ID or password!' });
+            }
+        }
+
+        function handleAdminLogout() {
+            setState({ isAdmin: false, currentPage: 'home', isDrawerOpen: false });
+            showMessage('Logged out successfully!');
+        }
+        
+        async function handlePostContent(data, form) {
+            // Check if the database and user are authenticated before proceeding.
+            if (!state.db || !state.userId || state.isSubmitting) {
+                showMessage('Database is not ready. Please wait a moment.');
+                return;
+            }
+
+            setState({ isSubmitting: true });
+            
+            try {
+                const contentRef = collection(state.db, `/artifacts/${__app_id}/public/data/content`);
+                
+                // Add new document to Firestore with form data and timestamps
+                await addDoc(contentRef, {
+                    ...data,
+                    createdAt: serverTimestamp(),
+                    authorId: state.userId
+                });
+
+                // Reset the form and update the state to reflect the form is cleared
+                form.reset();
+                setState({ 
+                    adminContent: { title: '', description: '', type: 'Course', status: 'Free', label: 'Free Course', link: '' },
+                    isSubmitting: false 
+                });
+                showMessage('Content posted successfully!');
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                showMessage('Error posting content!');
+            } finally {
+                setState({ isSubmitting: false });
+            }
+        }
+        
+        async function handleSaveEditContent(id) {
+            if (!state.db) return;
+            const form = appDiv.querySelector(`[data-container="contentList"] [data-id="${id}"]`).closest('.p-4');
+            const updatedData = {
+                title: form.querySelector('[name="title"]').value,
+                description: form.querySelector('[name="description"]').value,
+                link: form.querySelector('[name="link"]').value,
+                label: form.querySelector('[name="label"]').value,
+            };
+
+            try {
+                const docRef = doc(state.db, `/artifacts/${__app_id}/public/data/content`, id);
+                await updateDoc(docRef, updatedData);
+                setState({ editingContentId: null });
+                showMessage('Content updated successfully!');
+            } catch (e) {
+                console.error("Error updating document: ", e);
+                showMessage('Error updating content!');
+            }
+        }
+
+        async function handleDeleteContent(id) {
+            if (!state.db) return;
+            try {
+                const docRef = doc(state.db, `/artifacts/${__app_id}/public/data/content`, id);
+                await deleteDoc(docRef);
+                showMessage('Content deleted successfully!');
+            } catch (e) {
+                console.error("Error deleting document: ", e);
+                showMessage('Error deleting content!');
+            }
+        }
+        
+        async function handleSaveEditStaticPage(pageKey) {
+            if (!state.db) return;
+            const newContent = appDiv.querySelector('[name="pageContent"]').value;
+            try {
+                const pageRef = doc(state.db, `/artifacts/${__app_id}/public/data/static_pages`, pageKey);
+                await setDoc(pageRef, { text: newContent }, { merge: true });
+                setState({ editingPage: null, pageContentToEdit: '' });
+                showMessage('Page updated successfully!');
+            } catch (e) {
+                console.error("Error updating static page:", e);
+                showMessage('Error updating page!');
+            }
+        }
+
+        // --- Firebase Initialization ---
+        
+        window.onload = async () => {
+            const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : '';
+            
+            try {
+                if (firebaseConfig && Object.keys(firebaseConfig).length > 0) {
+                    const app = initializeApp(firebaseConfig);
+                    const firestore = getFirestore(app);
+                    const authInstance = getAuth(app);
+                    
+                    onAuthStateChanged(authInstance, (user) => {
+                        if (user) {
+                            // Now that a user is authenticated, set the state with db and userId
+                            setState({ db: firestore, auth: authInstance, userId: user.uid, loading: false });
+                            // Set up Firestore listeners after auth is ready
+                            setupFirestoreListeners();
+                        } else {
+                            // If user logs out or is not authenticated, set userId to null
+                            setState({ userId: null, loading: false });
+                        }
+                    });
+
+                    if (initialAuthToken) {
+                        signInWithCustomToken(authInstance, initialAuthToken).catch(console.error);
+                    } else {
+                        signInAnonymously(authInstance).catch(console.error);
+                    }
+                } else {
+                    console.error("Firebase config is missing.");
+                    setState({ loading: false });
+                }
+            } catch (e) {
+                console.error("Firebase Initialization Error:", e);
+                setState({ loading: false });
+            }
+            renderApp();
+        };
+
+        function setupFirestoreListeners() {
+            if (!state.db || !state.userId) return;
+            
+            // Listener for study content
+            const contentRef = collection(state.db, `/artifacts/${__app_id}/public/data/content`);
+            onSnapshot(contentRef, (snapshot) => {
+                const fetchedContent = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setState({ content: fetchedContent });
+            }, (error) => {
+                console.error("Error fetching content:", error);
+            });
+
+            // Listener for static pages
+            const pagesRef = collection(state.db, `/artifacts/${__app_id}/public/data/static_pages`);
+            onSnapshot(pagesRef, (snapshot) => {
+                const pagesData = {};
+                snapshot.docs.forEach(doc => {
+                    const normalizedId = doc.id.replace(/ /g, '_').toLowerCase();
+                    pagesData[normalizedId] = doc.data().text;
+                });
+                setState({ staticPages: pagesData });
+            }, (error) => {
+                console.error("Error fetching static pages:", error);
+            });
+        }
+
+    </script>
 </body>
 </html>
